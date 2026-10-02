@@ -11,6 +11,7 @@ import {
   Network,
   Flame,
   FileJson,
+  NotebookText,
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { useEffect, useState } from "react";
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/bookmarks", label: "Bookmarks", icon: Bookmark },
   { to: "/custom-mocks", label: "Custom Mocks", icon: FileJson },
+  { to: "/notes", label: "Notes", icon: NotebookText },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
 ];
 
@@ -32,7 +34,8 @@ const MOBILE_NAV_ITEMS = [
   NAV_ITEMS[1], // Practice
   NAV_ITEMS[2], // Mock Test
   NAV_ITEMS[5], // Custom Mocks
-  NAV_ITEMS[6], // Settings
+  NAV_ITEMS[6], // Notes
+  NAV_ITEMS[7], // Settings
 ];
 
 export default function Layout({ children }) {

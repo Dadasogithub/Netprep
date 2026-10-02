@@ -13,6 +13,7 @@ const KEYS = {
   STREAK: "netprep_streak_v1", // { lastActiveDate, currentStreak, longestStreak, activeDates: string[] }
   PRACTICE_SESSION: "netprep_practice_session_v1", // in-progress practice/mock session (resume support)
   CUSTOM_MOCKS: "netprep_custom_mocks_v1", // CustomMockTest[] — user-uploaded JSON mock tests
+  NOTES: "netprep_notes_v1", // { id, name, createdAt, notes: [...] }
 };
 
 function safeGet(key, fallback) {
@@ -188,6 +189,76 @@ export function clearActiveSession() {
   }
 }
 
+// ---------- Notes / study files ----------
+
+export function getNoteFolders() {
+  return safeGet(KEYS.NOTES, []);
+}
+
+export function createNoteFolder(name) {
+  const trimmed = (name || "").trim();
+  if (!trimmed) throw new Error("Folder name is required.");
+
+  const folders = getNoteFolders();
+  const exists = folders.some((folder) => folder.name.toLowerCase() === trimmed.toLowerCase());
+  if (exists) throw new Error("A folder with that name already exists.");
+
+  const folder = {
+    id: `folder-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+    name: trimmed,
+    createdAt: new Date().toISOString(),
+    notes: [],
+  };
+
+  const updated = [...folders, folder];
+  safeSet(KEYS.NOTES, updated);
+  return folder;
+}
+
+export function deleteNoteFolder(id) {
+  const updated = getNoteFolders().filter((folder) => folder.id !== id);
+  safeSet(KEYS.NOTES, updated);
+  return updated;
+}
+
+export function addNoteToFolder(folderId, note) {
+  const folders = getNoteFolders();
+  const updated = folders.map((folder) => {
+    if (folder.id !== folderId) return folder;
+    return {
+      ...folder,
+      notes: [
+        {
+          id: `note-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+          ...note,
+          createdAt: new Date().toISOString(),
+        },
+        ...folder.notes,
+      ],
+    };
+  });
+
+  if (!updated.some((folder) => folder.id === folderId)) {
+    throw new Error("The selected folder no longer exists.");
+  }
+
+  safeSet(KEYS.NOTES, updated);
+  return updated;
+}
+
+export function deleteNote(folderId, noteId) {
+  const updated = getNoteFolders().map((folder) => {
+    if (folder.id !== folderId) return folder;
+    return {
+      ...folder,
+      notes: folder.notes.filter((note) => note.id !== noteId),
+    };
+  });
+
+  safeSet(KEYS.NOTES, updated);
+  return updated;
+}
+
 // ---------- Custom Mock Tests (user-uploaded JSON) ----------
 
 export function getCustomMocks() {
@@ -255,5 +326,10 @@ export default {
   getCustomMockById,
   addCustomMock,
   deleteCustomMock,
+  getNoteFolders,
+  createNoteFolder,
+  deleteNoteFolder,
+  addNoteToFolder,
+  deleteNote,
   resetAllProgress,
 };
